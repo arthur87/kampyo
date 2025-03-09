@@ -36,11 +36,8 @@ Gem::Specification.new do |spec|
   # spec.add_dependency "example-gem", "~> 1.0"
   spec.add_development_dependency 'rubocop'
 
-  spec.add_dependency 'activerecord'
-  spec.add_dependency 'activesupport'
   spec.add_dependency 'cabocha'
   spec.add_dependency 'mecab'
-  spec.add_dependency 'sqlite3', '~> 1.4'
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

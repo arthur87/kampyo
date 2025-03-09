@@ -1,30 +1,13 @@
 # frozen_string_literal: true
 
 require 'kampyo'
-require 'kampyo/scratchpad'
 require 'kampyo/string'
 require 'cabocha'
 require 'mecab'
 
 module Kampyo
   class Text
-    def initialize
-      Kampyo::Scratchpad.instance
-    end
-
-    def parse(input)
-      # データベースをリセットする
-      Kampyo::Scratchpad.reset
-
-      cabocha_parser(input)
-      mecab_parser(input)
-
-      {
-        query: input,
-        chunks: Chunk.all,
-        tokens: Token.all
-      }.merge(analysis)
-    end
+    def initialize; end
 
     def cabocha_parser(input)
       # <sentence>
@@ -41,15 +24,18 @@ module Kampyo
       parser = CaboCha::Parser.new
       tree = parser.parse(input)
 
+      chunks = []
+      tokens = []
       token_position = 0
       (0..tree.chunk_size - 1).each do |i|
         chunk = tree.chunk(i)
         token_size = chunk.token_size
 
-        Chunk.create({
-                       link: chunk.link >= 0 ? chunk.link + 1 : -1,
-                       score: chunk.score
-                     })
+        chunks << {
+          id: chunks.size + 1,
+          link: chunk.link >= 0 ? chunk.link + 1 : -1,
+          score: chunk.score
+        }
 
         (token_position..token_position + token_size - 1).each do |j|
           token = tree.token(j)
@@ -60,77 +46,87 @@ module Kampyo
           feature6 = token.feature_list(6).to_utf8
           feature7 = token.feature_list(7).to_utf8
 
-          Token.create({
-                         chunk: i + 1,
-                         surface: surface,
-                         feature1: feature0,
-                         feature2: feature1,
-                         baseform: feature6,
-                         reading: feature7,
-                         ext_reading: ext_reading(feature7)
-                       })
+          tokens << {
+            id: tokens.size + 1,
+            chunk: i + 1,
+            surface: surface,
+            feature1: feature0,
+            feature2: feature1,
+            baseform: feature6,
+            reading: feature7,
+            ext_reading: ext_reading(feature7)
+          }
         end
 
         token_position += token_size
       end
+
+      { chunks: chunks, tokens: tokens }
     end
 
     def mecab_parser(input)
+      result = []
       parser = MeCab::Tagger.new
       node = parser.parseToNode(input)
       while node
         features = node.feature.split(',')
         if features[0] != 'BOS/EOS'
-          MecabToken.create({
-                              chunk: 0,
-                              surface: node.surface,
-                              feature1: features[0],
-                              feature2: features[1],
-                              baseform: features[6],
-                              reading: features[7],
-                              ext_reading: ext_reading(features[7]),
-                              cost: node.cost,
-                              wcost: node.wcost,
-                              right_context: node.rcAttr,
-                              left_context: node.lcAttr
-                            })
+          result << {
+            id: result.size + 1,
+            chunk: 0,
+            surface: node.surface,
+            feature1: features[0],
+            feature2: features[1],
+            baseform: features[6],
+            reading: features[7],
+            ext_reading: ext_reading(features[7]),
+            cost: node.cost,
+            wcost: node.wcost,
+            right_context: node.rcAttr,
+            left_context: node.lcAttr
+          }
         end
         node = node.next
       end
+
+      result
     end
 
     def ext_reading(feature)
       (feature =~ /\A[\p{katakana}|ー]+\z/).nil? ? feature : nil
     end
 
-    def analysis
+    def analysis(cabocha)
+      chunks = cabocha[:chunks]
+      tokens = cabocha[:tokens]
+
       subject_token = nil
       predicate_token = nil
       tod = '*'
 
       # 述語の候補
-      predicate_chunk = Chunk.find_by(link: -1)
-      predicate_tokens = Token.where({
-                                       chunk: predicate_chunk.id
-                                     }).order('id asc')
+      predicate_chunk = chunks.find { |item| item[:link] == -1 }
+      predicate_tokens = tokens.select { |item| item[:chunk] == predicate_chunk[:id] }
 
       # 主語の候補
-      subject_chunk = Chunk.find_by(link: predicate_chunk.id)
-      if subject_chunk.present?
-        subject_tokens = Token.where({
-                                       chunk: subject_chunk.id,
-                                       feature1: ['名詞'],
-                                       feature2: %w[一般 固有名詞 サ変接続 接尾 数 副詞可能]
-                                     }).order('id asc')
+      subject_chunk = chunks.find do |item|
+        item[:link] == predicate_chunk[:id]
+      end
+      unless subject_chunk.nil?
+        subject_tokens = tokens.select do |item|
+          item[:chunk] == subject_chunk[:id] &&
+            item[:feature1] == '名詞' &&
+            %w[一般 固有名詞 サ変接続 接尾 数 副詞可能].include?(item[:feature2])
+        end
 
         subject_tokens.each do |token|
-          next_token = Token.find_by({
-                                       id: token.id + 1,
-                                       chunk: token.chunk,
-                                       baseform: %w[は って も が]
-                                     })
+          next_token = tokens.find do |item|
+            item[:id] == token[:id] + 1 &&
+              item[:chunk] == token[:chunk] &&
+              %w[は って も が].include?(item[:baseform])
+          end
 
-          next unless next_token.present?
+          next if next_token.nil?
 
           # 主語として確定する
           subject_token = token
@@ -139,15 +135,15 @@ module Kampyo
       end
 
       predicate_tokens.each do |token|
-        if %w[形容詞 動詞 名詞].include?(token.feature1) &&
-           %w[一般 自立 サ変接続 接尾].include?(token.feature2) &&
-           token.baseform != '*'
+        if %w[形容詞 動詞 名詞].include?(token[:feature1]) &&
+           %w[一般 自立 サ変接続 接尾].include?(token[:feature2]) &&
+           token[:baseform] != '*'
           # 述語として確定する
 
           predicate_token = token
         end
 
-        next unless %w[動詞 終助詞 助動詞 助詞].include?(token.feature1)
+        next unless %w[動詞 終助詞 助動詞 助詞].include?(token[:feature1])
 
         # 文体系を確定する
         tods = {
@@ -181,17 +177,17 @@ module Kampyo
           'さ' => '断定'
         }
 
-        tod = tods[token.baseform]
+        tod = tods[token[:baseform]]
       end
 
       last_token = predicate_tokens.last
 
-      if predicate_token.nil? && ['助動詞'].include?(last_token.feature1)
+      if predicate_token.nil? && ['助動詞'].include?(last_token[:feature1])
         # 述語が確定していないとき最後の助動詞を述語として確定する
         predicate_token = last_token
       end
 
-      if ['?', '？'].include?(last_token.surface)
+      if ['?', '？'].include?(last_token[:surface])
         # 述語の最後の形態素が?のとき
         tod = '疑問・反語・感動'
       end

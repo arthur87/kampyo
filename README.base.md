@@ -1,4 +1,9 @@
+<!---------------------------->
+<!-- multilingual suffix: en, ja -->
+<!-- no suffix: en -->
+<!---------------------------->
 
+<!-- $ mmg README.base.md -->
 
 # kampyo
 
