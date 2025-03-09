@@ -7,6 +7,7 @@ Gem::Specification.new do |spec|
   spec.version = Kampyo::VERSION
   spec.authors = ['arthur87']
   spec.email = ['arthur87@users.noreply.github.com']
+  spec.licenses = ['MIT']
 
   spec.summary = 'kampyo is a library for conveniently manipulating Cabocha and Mecab.'
   spec.description = 'kampyo is a library for conveniently manipulating Cabocha and Mecab.'
