@@ -33,7 +33,6 @@ RSpec.describe Kampyo::Text do # rubocop:disable Metrics/BlockLength
 
   it 'mecab_parser' do
     result = @text.mecab_parser(input)
-
     test = [
       { id: 1, chunk: 0, surface: '今日', feature1: '名詞', feature2: '副詞可能', baseform: '今日', reading: 'キョウ',
         ext_reading: nil, cost: 3947, wcost: 4263, right_context: 1314, left_context: 1314 },
