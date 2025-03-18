@@ -19,7 +19,7 @@ jobs:
 
       - name: Run install
         run: |
-          sudo apt-get install libmagickwand-dev imagemagick
+          sudo apt-get install mecab libmecab-dev mecab-utils mecab-ipadic-utf8 libcabocha-dev
           bundle install
 
       - name: Run RuboCop
@@ -41,7 +41,7 @@ jobs:
 
       - name: Run install
         run: |
-          sudo apt-get install libmagickwand-dev imagemagick
+          sudo apt-get install mecab libmecab-dev mecab-utils mecab-ipadic-utf8 libcabocha-dev
           bundle install
 
       - name: Run tests
