@@ -54,9 +54,14 @@ RSpec.describe Kampyo::Text do # rubocop:disable Metrics/BlockLength
 
   it 'analysis' do
     result = @text.analysis(@text.cabocha_parser(input))
-    test = { subject: { id: 1, chunk: 1, surface: '今日', feature1: '名詞', feature2: '副詞可能', baseform: '今日', reading: 'キョウ', ext_reading: nil },
-             predicate: { id: 3, chunk: 2, surface: '雨', feature1: '名詞', feature2: '一般', baseform: '雨', reading: 'アメ',
-                          ext_reading: nil },
+    test = { subject: {
+               id: 1, chunk: 1, surface: '今日', feature1: '名詞', feature2: '副詞可能', baseform: '今日',
+               reading: 'キョウ', ext_reading: nil
+             },
+             predicate: {
+               id: 3, chunk: 2, surface: '雨', feature1: '名詞', feature2: '一般', baseform: '雨',
+               reading: 'アメ', ext_reading: nil
+             },
              tod: '断定' }
 
     expect(result).to eq test
