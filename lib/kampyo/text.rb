@@ -5,11 +5,14 @@ require 'kampyo/string'
 require 'cabocha'
 require 'mecab'
 
+# Kampyo
 module Kampyo
-  class Text
+  # Text
+  class Text # rubocop:todo Metrics/ClassLength
     def initialize; end
 
-    def cabocha_parser(input)
+    # rubocop:todo Metrics/MethodLength
+    def cabocha_parser(input) # rubocop:todo Metrics/AbcSize, Metrics/MethodLength
       # <sentence>
       #  <chunk id="0" link="1" rel="D" score="0.000000" head="0" func="1">
       #   <tok id="0" feature="名詞,副詞可能,*,*,*,*,今日,キョウ,キョー" ne="B-DATE">今日</tok>
@@ -27,7 +30,7 @@ module Kampyo
       chunks = []
       tokens = []
       token_position = 0
-      (0..tree.chunk_size - 1).each do |i|
+      (0..tree.chunk_size - 1).each do |i| # rubocop:todo Metrics/BlockLength
         chunk = tree.chunk(i)
         token_size = chunk.token_size
 
@@ -63,8 +66,10 @@ module Kampyo
 
       { chunks: chunks, tokens: tokens }
     end
+    # rubocop:enable Metrics/MethodLength
 
-    def mecab_parser(input)
+    # rubocop:todo Metrics/MethodLength
+    def mecab_parser(input) # rubocop:todo Metrics/AbcSize, Metrics/MethodLength
       result = []
       parser = MeCab::Tagger.new
       node = parser.parseToNode(input)
@@ -91,12 +96,16 @@ module Kampyo
 
       result
     end
+    # rubocop:enable Metrics/MethodLength
 
     def ext_reading(feature)
       (feature =~ /\A[\p{katakana}|ー]+\z/).nil? ? feature : nil
     end
 
-    def analysis(cabocha)
+    # rubocop:todo Metrics/PerceivedComplexity
+    # rubocop:todo Metrics/MethodLength
+    # rubocop:todo Metrics/AbcSize
+    def analysis(cabocha) # rubocop:todo Metrics/CyclomaticComplexity, Metrics/AbcSize, Metrics/MethodLength, Metrics/PerceivedComplexity
       chunks = cabocha[:chunks]
       tokens = cabocha[:tokens]
 
@@ -134,7 +143,7 @@ module Kampyo
         end
       end
 
-      predicate_tokens.each do |token|
+      predicate_tokens.each do |token| # rubocop:todo Metrics/BlockLength
         if %w[形容詞 動詞 名詞].include?(token[:feature1]) &&
            %w[一般 自立 サ変接続 接尾].include?(token[:feature2]) &&
            token[:baseform] != '*'
@@ -198,5 +207,8 @@ module Kampyo
         tod: tod
       }
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
   end
 end
