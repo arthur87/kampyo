@@ -20,8 +20,8 @@ Unique features already implemented are subject and predicate, and stylistic inf
 Basic usage with Cabocha.
 
 ```
-text = Kampyo::Text.new
-text.cabocha_parser("今日は雨です")
+cabocha = Kampyo::Cabocha.new
+cabocha.parser("今日は雨です")
 ```
 
 You will get the following result.
@@ -38,8 +38,8 @@ You will get the following result.
 Guess the subject, predicate and sentence system.
 
 ```
-text = Kampyo::Text.new
-text.analysis(text.cabocha_parser("今日は雨です"))
+cabocha = Kampyo::Cabocha.new
+cabocha.analysis(text.parser("今日は雨です"))
 ```
 
 You will get the following result.

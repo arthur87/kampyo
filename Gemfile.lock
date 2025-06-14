@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kampyo (0.2.0)
+    kampyo (1.0.0)
       cabocha
       mecab
 
