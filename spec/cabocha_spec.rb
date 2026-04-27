@@ -32,7 +32,7 @@ RSpec.describe Kampyo::Cabocha do # rubocop:disable Metrics/BlockLength
   end
 
   it 'analysis' do
-    result = @cabocha.analysis(@cabocha.parser(input))
+    result = @cabocha.analysis(input)
     test = { subject: {
                id: 1, chunk: 1, surface: '今日', feature1: '名詞', feature2: '副詞可能', baseform: '今日',
                reading: 'キョウ', ext_reading: nil
