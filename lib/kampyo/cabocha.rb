@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'kampyo'
-require 'kampyo/string'
 require 'kampyo/text'
 require 'cabocha'
 
@@ -41,11 +40,11 @@ module Kampyo
         (token_position..token_position + token_size - 1).each do |j|
           token = tree.token(j)
 
-          surface = token.surface.to_utf8
-          feature0 = token.feature_list(0).to_utf8
-          feature1 = token.feature_list(1).to_utf8
-          feature6 = token.feature_list(6).to_utf8
-          feature7 = token.feature_list(7).to_utf8
+          surface = token.surface.force_encoding('UTF-8')
+          feature0 = token.feature_list(0).force_encoding('UTF-8')
+          feature1 = token.feature_list(1).force_encoding('UTF-8')
+          feature6 = token.feature_list(6).force_encoding('UTF-8')
+          feature7 = token.feature_list(7).force_encoding('UTF-8')
 
           tokens << {
             id: tokens.size + 1,
@@ -66,9 +65,10 @@ module Kampyo
     end
     # rubocop:enable Metrics/MethodLength
 
-    def analysis(cabocha) # rubocop:todo Metrics/CyclomaticComplexity, Metrics/AbcSize, Metrics/MethodLength, Metrics/PerceivedComplexity
-      chunks = cabocha[:chunks]
-      tokens = cabocha[:tokens]
+    def analysis(input) # rubocop:todo Metrics/CyclomaticComplexity, Metrics/AbcSize, Metrics/MethodLength, Metrics/PerceivedComplexity
+      result = parser(input)
+      chunks = result[:chunks]
+      tokens = result[:tokens]
 
       subject_token = nil
       predicate_token = nil

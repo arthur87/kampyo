@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'kampyo'
-require 'kampyo/string'
 
 # Kampyo
 module Kampyo

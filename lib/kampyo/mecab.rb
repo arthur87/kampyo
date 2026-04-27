@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require 'kampyo'
-require 'kampyo/string'
-require 'kampyo/text'
 require 'mecab'
 
 # Kampyo
